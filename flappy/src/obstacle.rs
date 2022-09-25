@@ -1,7 +1,4 @@
-use bracket_lib::prelude::*;
-
-use crate::player::Player;
-use crate::SCREEN_HEIGHT;
+use crate::prelude::*;
 
 pub struct Obstacle {
     pub x: i32,

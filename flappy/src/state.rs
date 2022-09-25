@@ -1,9 +1,4 @@
-use bracket_lib::prelude::*;
-
-use crate::game_mode::GameMode;
-use crate::obstacle::Obstacle;
-use crate::player::Player;
-use crate::{FRAME_DURATION, SCREEN_HEIGHT, SCREEN_WIDTH};
+use crate::prelude::*;
 
 pub struct State {
     player: Player,

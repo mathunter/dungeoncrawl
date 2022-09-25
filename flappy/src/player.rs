@@ -1,4 +1,4 @@
-use bracket_lib::prelude::*;
+use crate::prelude::*;
 
 pub struct Player {
     pub x: i32,

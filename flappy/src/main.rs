@@ -3,13 +3,18 @@ mod obstacle;
 mod player;
 mod state;
 
-use bracket_lib::prelude::*;
+mod prelude {
+    pub use bracket_lib::prelude::*;
+    pub const SCREEN_WIDTH: i32 = 80;
+    pub const SCREEN_HEIGHT: i32 = 50;
+    pub const FRAME_DURATION: f32 = 75.0;
+    pub use crate::game_mode::*;
+    pub use crate::obstacle::*;
+    pub use crate::player::*;
+    pub use crate::state::*;
+}
 
-use state::State;
-
-pub const SCREEN_WIDTH: i32 = 80;
-pub const SCREEN_HEIGHT: i32 = 50;
-pub const FRAME_DURATION: f32 = 75.0;
+use prelude::*;
 
 fn main() -> BError {
     // Create a new bracket context
