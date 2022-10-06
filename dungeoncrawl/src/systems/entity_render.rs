@@ -18,6 +18,6 @@ pub fn entity_render(ecs: &SubWorld, #[resource] camera: &Camera) {
             draw_batch.set(*pos - offset, render.color, render.glyph);
         });
 
-    // Submit the batch to be rendered, after the background
+    // Submit the batch to be rendered, well after the background
     draw_batch.submit(5000).expect("Batch error");
 }

@@ -86,14 +86,14 @@ impl MapBuilder {
     }
 
     pub fn new(rng: &mut RandomNumberGenerator) -> Self {
-        // Create a new MapBuilder instance
+        // Create the new instance
         let mut mb = MapBuilder {
             map: Map::new(),
             rooms: Vec::new(),
             player_start: Point::zero(),
         };
 
-        // Build the map
+        // Build the map, starting by filling in with walls, and then carving out rooms and corridors
         mb.fill(TileType::Wall);
         mb.build_random_rooms(rng);
         mb.build_corridors(rng);

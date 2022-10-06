@@ -9,7 +9,9 @@ pub fn player_input(
     #[resource] key: &Option<VirtualKeyCode>,
     #[resource] camera: &mut Camera,
 ) {
+    // Capture the input key
     if let Some(key) = key {
+        // Map the key into a point delta
         let delta = match key {
             VirtualKeyCode::Left => Point::new(-1, 0),
             VirtualKeyCode::Right => Point::new(1, 0),
@@ -18,6 +20,7 @@ pub fn player_input(
             _ => Point::zero(),
         };
 
+        // If we have some direction of movement, move the player
         if delta.x != 0 || delta.y != 0 {
             let mut player_points = <&mut Point>::query().filter(component::<Player>());
             player_points.iter_mut(ecs).for_each(|player_point| {
