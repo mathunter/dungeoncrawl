@@ -1,5 +1,6 @@
 use crate::prelude::*;
 
+// A system that handles collisions between entities in the ECS
 #[system]
 #[read_component(Point)]
 #[read_component(Player)]
