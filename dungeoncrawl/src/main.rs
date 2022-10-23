@@ -1,10 +1,10 @@
-mod viewport;
 mod components;
 mod map;
 mod map_builder;
 mod spawner;
 mod systems;
 mod turn_state;
+mod viewport;
 
 mod prelude {
     pub use bracket_lib::prelude::*;
@@ -12,13 +12,13 @@ mod prelude {
     pub use legion::world::SubWorld;
     pub use legion::*;
 
-    pub use crate::viewport::*;
     pub use crate::components::*;
     pub use crate::map::*;
     pub use crate::map_builder::*;
     pub use crate::spawner::*;
     pub use crate::systems::*;
     pub use crate::turn_state::*;
+    pub use crate::viewport::*;
 
     pub const SCREEN_WIDTH: i32 = 80;
     pub const SCREEN_HEIGHT: i32 = 50;
@@ -33,7 +33,7 @@ struct State {
     resources: Resources,
     input_systems: Schedule,
     player_systems: Schedule,
-    monster_systems: Schedule
+    monster_systems: Schedule,
 }
 
 impl State {
@@ -70,7 +70,7 @@ impl State {
             resources,
             input_systems: build_input_scheduler(),
             player_systems: build_player_scheduler(),
-            monster_systems: build_monster_scheduler()
+            monster_systems: build_monster_scheduler(),
         }
     }
 }
@@ -85,20 +85,31 @@ impl GameState for State {
         ctx.set_active_console(1);
         ctx.cls();
 
+        // Clear the HUD console
+        ctx.set_active_console(2);
+        ctx.cls();
+
         // Add any pressed key into the resources
         self.resources.insert(ctx.key);
+
+        // Render the mouse coordinates
+        ctx.set_active_console(0);
+        self.resources.insert(Point::from_tuple(ctx.mouse_pos()));
 
         // Execute the appropriate system, depending on the current turn state
         let current_state = self.resources.get::<TurnState>().unwrap().clone();
         match current_state {
             TurnState::AwaitingInput => {
-                self.input_systems.execute(&mut self.ecs, &mut self.resources);
-            },
+                self.input_systems
+                    .execute(&mut self.ecs, &mut self.resources);
+            }
             TurnState::PlayerTurn => {
-                self.player_systems.execute(&mut self.ecs, &mut self.resources);
-            },
+                self.player_systems
+                    .execute(&mut self.ecs, &mut self.resources);
+            }
             TurnState::MonsterTurn => {
-                self.monster_systems.execute(&mut self.ecs, &mut self.resources);
+                self.monster_systems
+                    .execute(&mut self.ecs, &mut self.resources);
             }
         }
 
@@ -116,8 +127,10 @@ fn main() -> BError {
         .with_tile_dimensions(32, 32)
         .with_resource_path("resources/")
         .with_font("dungeonfont.png", 32, 32)
+        .with_font("terminal8x8.png", 8, 8)
         .with_simple_console(DISPLAY_WIDTH, DISPLAY_HEIGHT, "dungeonfont.png")
         .with_simple_console_no_bg(DISPLAY_WIDTH, DISPLAY_HEIGHT, "dungeonfont.png")
+        .with_simple_console_no_bg(SCREEN_WIDTH * 2, SCREEN_HEIGHT * 2, "terminal8x8.png")
         .build()?;
 
     // Run the main loop

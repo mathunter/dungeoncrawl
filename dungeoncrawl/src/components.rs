@@ -4,6 +4,17 @@ use crate::prelude::*;
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Enemy;
 
+// A component that denotes health for an entity
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Health {
+    pub current: i32,
+    pub max: i32,
+}
+
+// A component that denotes the name of an entity
+#[derive(Clone, PartialEq)]
+pub struct Name(pub String);
+
 // A component that denotes a player
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Player;
@@ -17,4 +28,11 @@ pub struct MovingRandomly;
 pub struct Render {
     pub color: ColorPair,
     pub glyph: FontCharType,
+}
+
+// A component that signals the intention of an entity to move
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct WantsToMove {
+    pub entity: Entity,
+    pub destination: Point,
 }

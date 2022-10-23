@@ -16,11 +16,9 @@ pub fn entity_render(ecs: &SubWorld, #[resource] viewport: &Viewport) {
 
     // Query for all renderable entities (having Point and Render facets) and render them
     let mut renderables = <(&Point, &Render)>::query();
-    renderables
-        .iter(ecs)
-        .for_each(|(pos, render)| {
-            draw_batch.set(*pos - offset, render.color, render.glyph);
-        });
+    renderables.iter(ecs).for_each(|(pos, render)| {
+        draw_batch.set(*pos - offset, render.color, render.glyph);
+    });
 
     // Submit the batch to be rendered, well after the background
     draw_batch.submit(5000).expect("Batch error");

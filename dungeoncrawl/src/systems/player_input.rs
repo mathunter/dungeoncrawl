@@ -1,17 +1,20 @@
 use crate::prelude::*;
 
+// A system that handles player input
 #[system]
-#[write_component(Point)]
+#[read_component(Point)]
 #[read_component(Player)]
 pub fn player_input(
     ecs: &mut SubWorld,
-    #[resource] map: &Map,
+    commands: &mut CommandBuffer,
     #[resource] key: &Option<VirtualKeyCode>,
-    #[resource] viewport: &mut Viewport,
-    #[resource] turn_state: &mut TurnState
+    #[resource] turn_state: &mut TurnState,
 ) {
+    // Get the player
+    let mut players = <(Entity, &Point)>::query().filter(component::<Player>());
+
     // Capture the input key
-    if let Some(key) = key {
+    if let Some(key) = *key {
         // Map the key into a point delta
         let delta = match key {
             VirtualKeyCode::Left => Point::new(-1, 0),
@@ -21,17 +24,19 @@ pub fn player_input(
             _ => Point::zero(),
         };
 
-        // If we have some direction of movement, move the player
+        // If we have some direction of movement, add a command to move the player
         if delta.x != 0 || delta.y != 0 {
-            let mut player_points = <&mut Point>::query().filter(component::<Player>());
-            player_points.iter_mut(ecs).for_each(|player_point| {
-                let destination = *player_point + delta;
-                if map.can_enter_tile(destination) {
-                    *player_point = destination;
-                    viewport.on_player_move(destination);
-                    *turn_state = TurnState::PlayerTurn;
-                }
-            })
+            players.iter(ecs).for_each(|(entity, pos)| {
+                let destination = *pos + delta;
+                commands.push((
+                    (),
+                    WantsToMove {
+                        entity: *entity,
+                        destination,
+                    },
+                ));
+            });
+            *turn_state = TurnState::PlayerTurn;
         }
     }
 }

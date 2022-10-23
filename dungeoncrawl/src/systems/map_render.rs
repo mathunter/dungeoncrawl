@@ -1,5 +1,6 @@
 use crate::prelude::*;
 
+// A system that handles the rendering of the map
 #[system]
 pub fn map_render(#[resource] map: &Map, #[resource] viewport: &Viewport) {
     // Start a new draw batch
