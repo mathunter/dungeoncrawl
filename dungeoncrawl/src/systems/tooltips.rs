@@ -15,14 +15,18 @@ pub fn tooltips(ecs: &SubWorld, #[resource] mouse_pos: &Point, #[resource] viewp
 
     // Get the positions and render them
     let mut positions = <(Entity, &Point, &Name)>::query();
-    positions.iter(ecs).filter(|(_, pos, _)| **pos == map_pos).for_each(|(entity, _, name)| {
-        let screen_pos = *mouse_pos * 4;
-        let display = if let Ok(health) = ecs.entry_ref(*entity).unwrap().get_component::<Health>() {
-            format!("{} : {} hp", &name.0, health.current)
-        } else {
-            name.0.clone()
-        };
-        draw_batch.print(screen_pos, &display);
-    });
+    positions
+        .iter(ecs)
+        .filter(|(_, pos, _)| **pos == map_pos)
+        .for_each(|(entity, _, name)| {
+            let screen_pos = *mouse_pos * 4;
+            let display =
+                if let Ok(health) = ecs.entry_ref(*entity).unwrap().get_component::<Health>() {
+                    format!("{} : {} hp", &name.0, health.current)
+                } else {
+                    name.0.clone()
+                };
+            draw_batch.print(screen_pos, &display);
+        });
     draw_batch.submit(10100).expect("Batch error");
 }

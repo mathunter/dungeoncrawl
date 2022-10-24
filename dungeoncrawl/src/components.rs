@@ -30,6 +30,13 @@ pub struct Render {
     pub glyph: FontCharType,
 }
 
+// A component that signals the intention of an entity to attack
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct WantsToAttack {
+    pub attacker: Entity,
+    pub victim: Entity,
+}
+
 // A component that signals the intention of an entity to move
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct WantsToMove {
