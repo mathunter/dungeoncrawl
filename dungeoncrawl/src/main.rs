@@ -97,7 +97,7 @@ impl GameState for State {
         self.resources.insert(Point::from_tuple(ctx.mouse_pos()));
 
         // Execute the appropriate system, depending on the current turn state
-        let current_state = self.resources.get::<TurnState>().unwrap().clone();
+        let current_state = *self.resources.get::<TurnState>().unwrap();
         match current_state {
             TurnState::AwaitingInput => {
                 self.input_systems
