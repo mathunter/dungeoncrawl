@@ -1,5 +1,8 @@
 use crate::prelude::*;
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ChasingPlayer;
+
 // A component that denotes an enemy
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Enemy;
