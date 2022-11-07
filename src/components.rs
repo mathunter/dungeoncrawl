@@ -1,5 +1,10 @@
 use crate::prelude::*;
 
+// A component that denotes the Amulet of Yala
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct AmuletOfYala;
+
+// A component that denotes a behavior for chasing a player
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct ChasingPlayer;
 
@@ -13,6 +18,10 @@ pub struct Health {
     pub current: i32,
     pub max: i32,
 }
+
+// A component that denotes an item
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Item;
 
 // A component that denotes the name of an entity
 #[derive(Clone, PartialEq, Eq)]

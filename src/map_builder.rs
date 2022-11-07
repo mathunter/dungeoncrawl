@@ -6,6 +6,7 @@ pub struct MapBuilder {
     pub map: Map,
     pub rooms: Vec<Rect>,
     pub player_start: Point,
+    pub amulet_start: Point,
 }
 
 impl MapBuilder {
@@ -91,6 +92,7 @@ impl MapBuilder {
             map: Map::new(),
             rooms: Vec::new(),
             player_start: Point::zero(),
+            amulet_start: Point::zero(),
         };
 
         // Build the map, starting by filling in with walls, and then carving out rooms and corridors
@@ -100,6 +102,25 @@ impl MapBuilder {
 
         // Place the player
         mb.player_start = mb.rooms[0].center();
+
+        // Using a Dijkstra map, find the index that is furthest from the player, and map that to a point
+        const UNREACHABLE: &f32 = &f32::MAX;
+        let amulet_search_map = DijkstraMap::new(
+            SCREEN_WIDTH,
+            SCREEN_HEIGHT,
+            &[mb.map.point2d_to_index(mb.player_start)],
+            &mb.map,
+            1024.0,
+        );
+        let furthest_index = amulet_search_map
+            .map
+            .iter()
+            .enumerate()
+            .filter(|(_, dist)| *dist < UNREACHABLE)
+            .max_by(|a, b| a.1.partial_cmp(b.1).unwrap())
+            .unwrap()
+            .0;
+        mb.amulet_start = mb.map.index_to_point2d(furthest_index);
 
         mb
     }
