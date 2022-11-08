@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use crate::prelude::*;
 
 // A component that denotes the Amulet of Yala
@@ -11,6 +13,32 @@ pub struct ChasingPlayer;
 // A component that denotes an enemy
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Enemy;
+
+/// A component that contains a field of view of the map
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct FieldOfView {
+    pub visible_tiles: HashSet<Point>,
+    pub radius: i32,
+    pub is_dirty: bool,
+}
+
+impl FieldOfView {
+    pub fn new(radius: i32) -> Self {
+        Self {
+            visible_tiles: HashSet::new(),
+            radius,
+            is_dirty: true,
+        }
+    }
+
+    pub fn clone_dirty(&self) -> Self {
+        Self {
+            visible_tiles: HashSet::new(),
+            radius: self.radius,
+            is_dirty: true,
+        }
+    }
+}
 
 // A component that denotes health for an entity
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

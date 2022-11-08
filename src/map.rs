@@ -65,6 +65,10 @@ impl Algorithm2D for Map {
 }
 
 impl BaseMap for Map {
+    ///
+    /// Finds available exits for a given map tile
+    ///
+    /// * idx: the map index of the tile
     fn get_available_exits(&self, idx: usize) -> SmallVec<[(usize, f32); 10]> {
         let mut exits = SmallVec::new();
         let location = self.index_to_point2d(idx);
@@ -83,7 +87,20 @@ impl BaseMap for Map {
         exits
     }
 
+    ///
+    /// Gets the distance between two tiles on the map
+    ///
+    /// * idx1: the map index of the first tile
+    /// * idx2: the map index of the second tile
     fn get_pathing_distance(&self, idx1: usize, idx2: usize) -> f32 {
         DistanceAlg::Pythagoras.distance2d(self.index_to_point2d(idx1), self.index_to_point2d(idx2))
+    }
+
+    ///
+    /// Determines if the tile at the specified index is opaque
+    ///
+    /// * idx: the map index of the tile
+    fn is_opaque(&self, idx: usize) -> bool {
+        self.tiles[idx as usize] != TileType::Floor
     }
 }

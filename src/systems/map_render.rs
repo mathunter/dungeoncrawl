@@ -2,7 +2,13 @@ use crate::prelude::*;
 
 // A system that handles the rendering of the map
 #[system]
-pub fn map_render(#[resource] map: &Map, #[resource] viewport: &Viewport) {
+#[read_component(FieldOfView)]
+#[read_component(Player)]
+pub fn map_render(ecs: &SubWorld, #[resource] map: &Map, #[resource] viewport: &Viewport) {
+    // Get the player's FOV
+    let mut fov_query = <&FieldOfView>::query().filter(component::<Player>());
+    let player_fov = fov_query.iter(ecs).next().unwrap();
+
     // Start a new draw batch
     let mut draw_batch = DrawBatch::new();
 
@@ -14,7 +20,7 @@ pub fn map_render(#[resource] map: &Map, #[resource] viewport: &Viewport) {
         for x in viewport.left_x..viewport.right_x {
             let pt = Point::new(x, y);
             let offset = Point::new(viewport.left_x, viewport.top_y);
-            if map.in_bounds(pt) {
+            if map.in_bounds(pt) && player_fov.visible_tiles.contains(&pt) {
                 let idx = map_idx(x, y);
                 let glyph = match map.tiles[idx] {
                     TileType::Floor => to_cp437('.'),
