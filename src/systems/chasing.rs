@@ -21,7 +21,7 @@ pub fn chasing(#[resource] map: &Map, ecs: &SubWorld, commands: &mut CommandBuff
     let mut entities = <(Entity, &Point, &Health)>::query();
     chasers.iter(ecs).for_each(|(chaser, chaser_pos, _, fov)| {
         // Check if the chaser can see the player. If not, skip
-        if !fov.visible_tiles.contains(&player_pos) {
+        if !fov.visible_tiles.contains(player_pos) {
             return;
         }
 

@@ -23,7 +23,7 @@ pub fn tooltips(ecs: &SubWorld, #[resource] mouse_pos: &Point, #[resource] viewp
     let mut positions = <(Entity, &Point, &Name)>::query();
     positions
         .iter(ecs)
-        .filter(|(_, pos, _)| **pos == map_pos && player_fov.visible_tiles.contains(&pos))
+        .filter(|(_, pos, _)| **pos == map_pos && player_fov.visible_tiles.contains(pos))
         .for_each(|(entity, _, name)| {
             let screen_pos = *mouse_pos * 4;
             let display =
