@@ -20,13 +20,19 @@ pub fn map_render(ecs: &SubWorld, #[resource] map: &Map, #[resource] viewport: &
         for x in viewport.left_x..viewport.right_x {
             let pt = Point::new(x, y);
             let offset = Point::new(viewport.left_x, viewport.top_y);
-            if map.in_bounds(pt) && player_fov.visible_tiles.contains(&pt) {
-                let idx = map_idx(x, y);
+            let idx = map_idx(x, y);
+            if map.in_bounds(pt) && (player_fov.visible_tiles.contains(&pt) || map.revealed_tiles[idx]) {
+                let tint = if player_fov.visible_tiles.contains(&pt) {
+                    WHITE
+                } else {
+                    DARK_GRAY
+                };
+
                 let glyph = match map.tiles[idx] {
                     TileType::Floor => to_cp437('.'),
                     TileType::Wall => to_cp437('#'),
                 };
-                draw_batch.set(pt - offset, ColorPair::new(WHITE, BLACK), glyph);
+                draw_batch.set(pt - offset, ColorPair::new(tint, BLACK), glyph);
             }
         }
     }

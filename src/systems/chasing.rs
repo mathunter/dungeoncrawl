@@ -3,6 +3,7 @@ use crate::prelude::*;
 #[system]
 #[read_component(Point)]
 #[read_component(ChasingPlayer)]
+#[read_component(FieldOfView)]
 #[read_component(Health)]
 #[read_component(Player)]
 pub fn chasing(#[resource] map: &Map, ecs: &SubWorld, commands: &mut CommandBuffer) {
@@ -16,9 +17,14 @@ pub fn chasing(#[resource] map: &Map, ecs: &SubWorld, commands: &mut CommandBuff
     let dijkstra_map = DijkstraMap::new(SCREEN_WIDTH, SCREEN_HEIGHT, &search_targets, map, 1024.0);
 
     // Find the chasers and move them
-    let mut chasers = <(Entity, &Point, &ChasingPlayer)>::query();
+    let mut chasers = <(Entity, &Point, &ChasingPlayer, &FieldOfView)>::query();
     let mut entities = <(Entity, &Point, &Health)>::query();
-    chasers.iter(ecs).for_each(|(chaser, chaser_pos, _)| {
+    chasers.iter(ecs).for_each(|(chaser, chaser_pos, _, fov)| {
+        // Check if the chaser can see the player. If not, skip
+        if !fov.visible_tiles.contains(&player_pos) {
+            return;
+        }
+
         // Get the next destination for the chaser, as the exit from the current tile with the lowest
         // cost to move to the player's position. If there is one, move the chaser
         let chaser_idx = map_idx(chaser_pos.x, chaser_pos.y);
