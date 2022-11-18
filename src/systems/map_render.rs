@@ -21,7 +21,9 @@ pub fn map_render(ecs: &SubWorld, #[resource] map: &Map, #[resource] viewport: &
             let pt = Point::new(x, y);
             let offset = Point::new(viewport.left_x, viewport.top_y);
             let idx = map_idx(x, y);
-            if map.in_bounds(pt) && (player_fov.visible_tiles.contains(&pt) || map.revealed_tiles[idx]) {
+            if map.in_bounds(pt)
+                && (player_fov.visible_tiles.contains(&pt) || map.revealed_tiles[idx])
+            {
                 let tint = if player_fov.visible_tiles.contains(&pt) {
                     WHITE
                 } else {

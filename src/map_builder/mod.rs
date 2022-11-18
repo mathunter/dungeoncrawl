@@ -1,17 +1,50 @@
+use crate::map_builder::rooms::RoomsArchitect;
 use crate::prelude::*;
+use empty::EmptyArchitect;
+use crate::map_builder::automata::CellularAutomataArchitect;
+
+mod automata;
+mod empty;
+mod rooms;
 
 const NUM_ROOMS: usize = 20;
 
 pub struct MapBuilder {
     pub map: Map,
     pub rooms: Vec<Rect>,
+    pub monster_spawns: Vec<Point>,
     pub player_start: Point,
     pub amulet_start: Point,
+}
+
+trait MapArchitect {
+    fn new(&mut self, rng: &mut RandomNumberGenerator) -> MapBuilder;
 }
 
 impl MapBuilder {
     fn fill(&mut self, tile: TileType) {
         self.map.tiles.iter_mut().for_each(|t| *t = tile);
+    }
+
+    fn find_most_distant(&self) -> Point {
+        // Using a Dijkstra map, find the index that is furthest from the player, and map that to a point
+        let search_map = DijkstraMap::new(
+            SCREEN_WIDTH,
+            SCREEN_HEIGHT,
+            &[self.map.point2d_to_index(self.player_start)],
+            &self.map,
+            1024.0,
+        );
+        const UNREACHABLE: &f32 = &f32::MAX;
+        let furthest_index = search_map
+            .map
+            .iter()
+            .enumerate()
+            .filter(|(_, dist)| *dist < UNREACHABLE)
+            .max_by(|a, b| a.1.partial_cmp(b.1).unwrap())
+            .unwrap()
+            .0;
+        self.map.index_to_point2d(furthest_index)
     }
 
     fn build_random_rooms(&mut self, rng: &mut RandomNumberGenerator) {
@@ -87,41 +120,53 @@ impl MapBuilder {
     }
 
     pub fn new(rng: &mut RandomNumberGenerator) -> Self {
-        // Create the new instance
-        let mut mb = MapBuilder {
-            map: Map::new(),
-            rooms: Vec::new(),
-            player_start: Point::zero(),
-            amulet_start: Point::zero(),
-        };
+        // let mut architect = RoomsArchitect {};
+        let mut architect = CellularAutomataArchitect {};
+        architect.new(rng)
+        // // Create the new instance
+        // let mut mb = MapBuilder {
+        //     map: Map::new(),
+        //     rooms: Vec::new(),
+        //     monster_spawns: Vec::new(),
+        //     player_start: Point::zero(),
+        //     amulet_start: Point::zero(),
+        // };
+        //
+        // // Build the map, starting by filling in with walls, and then carving out rooms and corridors
+        // mb.fill(TileType::Wall);
+        // mb.build_random_rooms(rng);
+        // mb.build_corridors(rng);
+        //
+        // // Place the player
+        // mb.player_start = mb.rooms[0].center();
+        //
+        // // Place the amulet, as the furthest from the player
+        // mb.amulet_start = mb.find_most_distant();
+        //
+        // mb
+    }
 
-        // Build the map, starting by filling in with walls, and then carving out rooms and corridors
-        mb.fill(TileType::Wall);
-        mb.build_random_rooms(rng);
-        mb.build_corridors(rng);
-
-        // Place the player
-        mb.player_start = mb.rooms[0].center();
-
-        // Using a Dijkstra map, find the index that is furthest from the player, and map that to a point
-        const UNREACHABLE: &f32 = &f32::MAX;
-        let amulet_search_map = DijkstraMap::new(
-            SCREEN_WIDTH,
-            SCREEN_HEIGHT,
-            &[mb.map.point2d_to_index(mb.player_start)],
-            &mb.map,
-            1024.0,
-        );
-        let furthest_index = amulet_search_map
+    fn spawn_monsters(&self, start: &Point, rng: &mut RandomNumberGenerator) -> Vec<Point> {
+        const NUM_MONSTERS: usize = 50;
+        let mut spawnable_tiles: Vec<Point> = self
             .map
+            .tiles
             .iter()
             .enumerate()
-            .filter(|(_, dist)| *dist < UNREACHABLE)
-            .max_by(|a, b| a.1.partial_cmp(b.1).unwrap())
-            .unwrap()
-            .0;
-        mb.amulet_start = mb.map.index_to_point2d(furthest_index);
+            .filter(|(idx, t)| {
+                **t == TileType::Floor
+                    && DistanceAlg::Pythagoras.distance2d(*start, self.map.index_to_point2d(*idx))
+                        > 10.0
+            })
+            .map(|(idx, _)| self.map.index_to_point2d(idx))
+            .collect();
 
-        mb
+        let mut monster_spawns = Vec::new();
+        for _ in 0..NUM_MONSTERS {
+            let target_index = rng.random_slice_index(&spawnable_tiles).unwrap();
+            monster_spawns.push(spawnable_tiles[target_index].clone());
+            spawnable_tiles.remove(target_index);
+        }
+        monster_spawns
     }
 }

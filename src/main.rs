@@ -54,11 +54,9 @@ impl State {
 
         // Spawn monsters, one in each room, except for the first (where the player spawns)
         map_builder
-            .rooms
+            .monster_spawns
             .iter()
-            .skip(1)
-            .map(|r| r.center())
-            .for_each(|pos| spawn_monster(&mut ecs, &mut rng, pos));
+            .for_each(|pos| spawn_monster(&mut ecs, &mut rng, *pos));
 
         // Add the map and viewport to the resources
         let mut resources = Resources::default();
@@ -124,11 +122,9 @@ impl State {
 
         // Spawn the monsters
         map_builder
-            .rooms
+            .monster_spawns
             .iter()
-            .skip(1)
-            .map(|r| r.center())
-            .for_each(|pos| spawn_monster(&mut self.ecs, &mut rng, pos));
+            .for_each(|pos| spawn_monster(&mut self.ecs, &mut rng, *pos));
 
         // Add the map, viewpoint, and turn state to the resource manager
         self.resources.insert(map_builder.map);
