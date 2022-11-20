@@ -1,9 +1,11 @@
+use crate::map_builder::automata::CellularAutomataArchitect;
+use crate::map_builder::drunkard::DrunkardsWalkArchitect;
 use crate::map_builder::rooms::RoomsArchitect;
 use crate::prelude::*;
 use empty::EmptyArchitect;
-use crate::map_builder::automata::CellularAutomataArchitect;
 
 mod automata;
+mod drunkard;
 mod empty;
 mod rooms;
 
@@ -120,30 +122,12 @@ impl MapBuilder {
     }
 
     pub fn new(rng: &mut RandomNumberGenerator) -> Self {
-        // let mut architect = RoomsArchitect {};
-        let mut architect = CellularAutomataArchitect {};
+        let mut architect: Box<dyn MapArchitect> = match rng.range(0, 3) {
+            0 => Box::new(DrunkardsWalkArchitect {}),
+            1 => Box::new(RoomsArchitect {}),
+            _ => Box::new(CellularAutomataArchitect {}),
+        };
         architect.new(rng)
-        // // Create the new instance
-        // let mut mb = MapBuilder {
-        //     map: Map::new(),
-        //     rooms: Vec::new(),
-        //     monster_spawns: Vec::new(),
-        //     player_start: Point::zero(),
-        //     amulet_start: Point::zero(),
-        // };
-        //
-        // // Build the map, starting by filling in with walls, and then carving out rooms and corridors
-        // mb.fill(TileType::Wall);
-        // mb.build_random_rooms(rng);
-        // mb.build_corridors(rng);
-        //
-        // // Place the player
-        // mb.player_start = mb.rooms[0].center();
-        //
-        // // Place the amulet, as the furthest from the player
-        // mb.amulet_start = mb.find_most_distant();
-        //
-        // mb
     }
 
     fn spawn_monsters(&self, start: &Point, rng: &mut RandomNumberGenerator) -> Vec<Point> {
@@ -164,7 +148,7 @@ impl MapBuilder {
         let mut monster_spawns = Vec::new();
         for _ in 0..NUM_MONSTERS {
             let target_index = rng.random_slice_index(&spawnable_tiles).unwrap();
-            monster_spawns.push(spawnable_tiles[target_index].clone());
+            monster_spawns.push(spawnable_tiles[target_index]);
             spawnable_tiles.remove(target_index);
         }
         monster_spawns
