@@ -1,5 +1,6 @@
 use crate::map_builder::automata::CellularAutomataArchitect;
 use crate::map_builder::drunkard::DrunkardsWalkArchitect;
+use crate::map_builder::prefab::apply_prefab;
 use crate::map_builder::rooms::RoomsArchitect;
 use crate::prelude::*;
 use empty::EmptyArchitect;
@@ -7,6 +8,7 @@ use empty::EmptyArchitect;
 mod automata;
 mod drunkard;
 mod empty;
+mod prefab;
 mod rooms;
 
 const NUM_ROOMS: usize = 20;
@@ -127,7 +129,9 @@ impl MapBuilder {
             1 => Box::new(RoomsArchitect {}),
             _ => Box::new(CellularAutomataArchitect {}),
         };
-        architect.new(rng)
+        let mut mb = architect.new(rng);
+        apply_prefab(&mut mb, rng);
+        mb
     }
 
     fn spawn_monsters(&self, start: &Point, rng: &mut RandomNumberGenerator) -> Vec<Point> {
