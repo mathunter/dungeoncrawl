@@ -4,6 +4,9 @@ use crate::prelude::*;
 pub struct CellularAutomataArchitect {}
 
 impl MapArchitect for CellularAutomataArchitect {
+    ///
+    /// Creates a new instance
+    /// * `rng` - a RandomNumberGenerator
     fn new(&mut self, rng: &mut RandomNumberGenerator) -> MapBuilder {
         let mut mb = MapBuilder {
             map: Map::new(),
@@ -20,12 +23,16 @@ impl MapArchitect for CellularAutomataArchitect {
         let start = self.find_start(&mb.map);
         mb.monster_spawns = mb.spawn_monsters(&start, rng);
         mb.player_start = start;
-        mb.amulet_start = mb.find_most_distant();
+        mb.amulet_start = mb.find_most_distant(mb.player_start);
         mb
     }
 }
 
 impl CellularAutomataArchitect {
+    ///
+    /// Creates a random noise map
+    /// * `rng` - a RandomNumberGenerator
+    /// * `map` - the Map instance
     fn random_noise_map(&mut self, rng: &mut RandomNumberGenerator, map: &mut Map) {
         map.tiles.iter_mut().for_each(|tile| {
             let roll = rng.range(0, 100);
@@ -37,6 +44,11 @@ impl CellularAutomataArchitect {
         })
     }
 
+    ///
+    /// Counts the neighbors for a specified x/y coordinate
+    /// * `x` - the x coordinate
+    /// * `y` - the y coordinate
+    /// * `map` - the Map instance
     fn count_neighbors(&self, x: i32, y: i32, map: &Map) -> usize {
         let mut neighbors = 0;
         for iy in -1..=1 {
@@ -49,6 +61,9 @@ impl CellularAutomataArchitect {
         neighbors
     }
 
+    ///
+    /// Finds the starting point for the player
+    /// * `map` - the Map
     fn find_start(&self, map: &Map) -> Point {
         let center = Point::new(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
         let closest_point = map
@@ -68,6 +83,9 @@ impl CellularAutomataArchitect {
         map.index_to_point2d(closest_point)
     }
 
+    ///
+    /// Performs an iteration of the game of life
+    /// * `map` - the Map instance
     fn iteration(&mut self, map: &mut Map) {
         let mut new_tiles = map.tiles.clone();
         for y in 1..SCREEN_HEIGHT - 1 {

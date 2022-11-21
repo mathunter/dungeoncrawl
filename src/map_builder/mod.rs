@@ -15,6 +15,9 @@ mod themes;
 
 const NUM_ROOMS: usize = 20;
 
+///
+/// A struct that defines the information required to build out a game map
+///
 pub struct MapBuilder {
     pub map: Map,
     pub rooms: Vec<Rect>,
@@ -24,25 +27,40 @@ pub struct MapBuilder {
     pub theme: Box<dyn MapTheme>,
 }
 
+///
+/// A trait that defines a mechanism that architects maps according to an algorithm
+///
 trait MapArchitect {
     fn new(&mut self, rng: &mut RandomNumberGenerator) -> MapBuilder;
 }
 
+///
+/// A trait that defines a map theme
+///
 pub trait MapTheme: Sync + Send {
     fn tile_to_render(&self, tile_type: TileType) -> FontCharType;
 }
 
+///
+/// An implementation of the MapBuilder trait
+///
 impl MapBuilder {
-    fn fill(&mut self, tile: TileType) {
-        self.map.tiles.iter_mut().for_each(|t| *t = tile);
+    ///
+    /// Fills the map with the specified TileType
+    /// * `tile_type` - the TileType of the tile to fill
+    fn fill(&mut self, tile_type: TileType) {
+        self.map.tiles.iter_mut().for_each(|t| *t = tile_type);
     }
 
-    fn find_most_distant(&self) -> Point {
+    ///
+    /// Finds the most distant point on the map from the specified point
+    /// * `source_point` - the point from which to find the most distant point
+    fn find_most_distant(&self, source_point: Point) -> Point {
         // Using a Dijkstra map, find the index that is furthest from the player, and map that to a point
         let search_map = DijkstraMap::new(
             SCREEN_WIDTH,
             SCREEN_HEIGHT,
-            &[self.map.point2d_to_index(self.player_start)],
+            &[self.map.point2d_to_index(source_point)],
             &self.map,
             1024.0,
         );
@@ -58,9 +76,13 @@ impl MapBuilder {
         self.map.index_to_point2d(furthest_index)
     }
 
+    ///
+    /// Builds random rooms
+    /// * `rng` - a RandomNumberGenerator
     fn build_random_rooms(&mut self, rng: &mut RandomNumberGenerator) {
+        // Generate rooms up to our configured maximum
         while self.rooms.len() < NUM_ROOMS {
-            // Compose a random room
+            // Create a room with random dimensions
             let room = Rect::with_size(
                 rng.range(1, SCREEN_WIDTH - 10),
                 rng.range(1, SCREEN_HEIGHT - 10),
@@ -91,24 +113,9 @@ impl MapBuilder {
         }
     }
 
-    fn apply_vertical_tunnel(&mut self, y1: i32, y2: i32, x: i32) {
-        use std::cmp::{max, min};
-        for y in min(y1, y2)..=max(y1, y2) {
-            if let Some(idx) = self.map.try_idx(Point::new(x, y)) {
-                self.map.tiles[idx as usize] = TileType::Floor;
-            }
-        }
-    }
-
-    fn apply_horizontal_tunnel(&mut self, x1: i32, x2: i32, y: i32) {
-        use std::cmp::{max, min};
-        for x in min(x1, x2)..=max(x1, x2) {
-            if let Some(idx) = self.map.try_idx(Point::new(x, y)) {
-                self.map.tiles[idx as usize] = TileType::Floor;
-            }
-        }
-    }
-
+    ///
+    /// Builds corridors between rooms
+    /// * `rng` - a RandomNumberGenerator
     fn build_corridors(&mut self, rng: &mut RandomNumberGenerator) {
         // Clone the rooms for corridor builder
         let mut rooms = self.rooms.clone();
@@ -131,8 +138,36 @@ impl MapBuilder {
     }
 
     ///
-    /// Creates a new instance
+    /// Builds a vertical tunnel between two points
+    /// * `y1` - the starting y coordinate
+    /// * `y2` - the ending y coordinate
+    /// * `x` - the shared x coordinate
+    fn apply_vertical_tunnel(&mut self, y1: i32, y2: i32, x: i32) {
+        use std::cmp::{max, min};
+        for y in min(y1, y2)..=max(y1, y2) {
+            if let Some(idx) = self.map.try_idx(Point::new(x, y)) {
+                self.map.tiles[idx as usize] = TileType::Floor;
+            }
+        }
+    }
+
     ///
+    /// Builds a horizontal tunnel between two points
+    /// * `x1` - the starting x coordinate
+    /// * `x2` - the ending x coordinate
+    /// * `y` - the shared y coordinate
+    fn apply_horizontal_tunnel(&mut self, x1: i32, x2: i32, y: i32) {
+        use std::cmp::{max, min};
+        for x in min(x1, x2)..=max(x1, x2) {
+            if let Some(idx) = self.map.try_idx(Point::new(x, y)) {
+                self.map.tiles[idx as usize] = TileType::Floor;
+            }
+        }
+    }
+
+    ///
+    /// Creates a new instance
+    /// * `rng` - a RandomNumberGenerator
     pub fn new(rng: &mut RandomNumberGenerator) -> Self {
         //
         // Randomly select the architect
@@ -157,8 +192,14 @@ impl MapBuilder {
         mb
     }
 
-    fn spawn_monsters(&self, start: &Point, rng: &mut RandomNumberGenerator) -> Vec<Point> {
+    ///
+    /// Spawns monsters from the specified start point
+    /// * `start` - the start point
+    /// * `rng` - a RandomNumberGenerator
+    fn spawn_monsters(&self, start_point: &Point, rng: &mut RandomNumberGenerator) -> Vec<Point> {
         const NUM_MONSTERS: usize = 50;
+
+        // Create the collection of tiles on which we can spawn monsters
         let mut spawnable_tiles: Vec<Point> = self
             .map
             .tiles
@@ -166,12 +207,14 @@ impl MapBuilder {
             .enumerate()
             .filter(|(idx, t)| {
                 **t == TileType::Floor
-                    && DistanceAlg::Pythagoras.distance2d(*start, self.map.index_to_point2d(*idx))
+                    && DistanceAlg::Pythagoras
+                        .distance2d(*start_point, self.map.index_to_point2d(*idx))
                         > 10.0
             })
             .map(|(idx, _)| self.map.index_to_point2d(idx))
             .collect();
 
+        // Create a new collection of monster spawn points
         let mut monster_spawns = Vec::new();
         for _ in 0..NUM_MONSTERS {
             let target_index = rng.random_slice_index(&spawnable_tiles).unwrap();
