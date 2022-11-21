@@ -66,6 +66,9 @@ impl State {
         // Add the initial awaiting turn state to the resources
         resources.insert(TurnState::AwaitingInput);
 
+        // Add the theme to the resources
+        resources.insert(map_builder.theme);
+
         Self {
             ecs,
             resources,
@@ -131,6 +134,9 @@ impl State {
         self.resources
             .insert(Viewport::new(map_builder.player_start));
         self.resources.insert(TurnState::AwaitingInput);
+
+        // Add the theme to the resources
+        self.resources.insert(map_builder.theme);
     }
 
     fn victory(&mut self, ctx: &mut BTerm) {

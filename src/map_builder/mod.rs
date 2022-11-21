@@ -4,12 +4,14 @@ use crate::map_builder::prefab::apply_prefab;
 use crate::map_builder::rooms::RoomsArchitect;
 use crate::prelude::*;
 use empty::EmptyArchitect;
+use themes::*;
 
 mod automata;
 mod drunkard;
 mod empty;
 mod prefab;
 mod rooms;
+mod themes;
 
 const NUM_ROOMS: usize = 20;
 
@@ -19,10 +21,15 @@ pub struct MapBuilder {
     pub monster_spawns: Vec<Point>,
     pub player_start: Point,
     pub amulet_start: Point,
+    pub theme: Box<dyn MapTheme>,
 }
 
 trait MapArchitect {
     fn new(&mut self, rng: &mut RandomNumberGenerator) -> MapBuilder;
+}
+
+pub trait MapTheme: Sync + Send {
+    fn tile_to_render(&self, tile_type: TileType) -> FontCharType;
 }
 
 impl MapBuilder {
@@ -123,14 +130,30 @@ impl MapBuilder {
         }
     }
 
+    ///
+    /// Creates a new instance
+    ///
     pub fn new(rng: &mut RandomNumberGenerator) -> Self {
+        //
+        // Randomly select the architect
         let mut architect: Box<dyn MapArchitect> = match rng.range(0, 3) {
             0 => Box::new(DrunkardsWalkArchitect {}),
             1 => Box::new(RoomsArchitect {}),
             _ => Box::new(CellularAutomataArchitect {}),
         };
+
+        // Use the architect to build the map
         let mut mb = architect.new(rng);
+
+        // Apply a prefab fortress
         apply_prefab(&mut mb, rng);
+
+        // Randomly select the theme for the map
+        mb.theme = match rng.range(0, 2) {
+            0 => DungeonTheme::new(),
+            _ => ForestTheme::new(),
+        };
+
         mb
     }
 
